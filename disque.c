@@ -63,11 +63,42 @@ disque_request(CURL *curl, struct DisqueContext *ctx)
   return res.content;
 }
 
+struct DisqueGatewayResponse *
+disque_get_gateway_response(struct DisqueContext *ctx)
+{
+  CURL *curl;
+  char *res;
+  struct DisqueGatewayResponse *gateway;
+
+  curl_global_init(CURL_GLOBAL_ALL);
+  curl = curl_easy_init();
+  if (!curl)
+    return NULL;
+  curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/gateway/bot");
+  res = disque_request(curl, ctx);
+  printf("%s\n", res);
+
+  gateway = malloc(sizeof(struct DisqueGatewayResponse));
+  cJSON *json = cJSON_Parse(res);
+  cJSON *limit = cJSON_GetObjectItemCaseSensitive(json, "session_start_limit");
+  strcpy(gateway->url, cJSON_GetObjectItemCaseSensitive(json, "url")->valuestring);
+  gateway->shards = cJSON_GetObjectItemCaseSensitive(json, "shards")->valueint;
+  gateway->session_start_limit.total = cJSON_GetObjectItemCaseSensitive(limit, "total")->valueint;
+  gateway->session_start_limit.remaining = cJSON_GetObjectItemCaseSensitive(limit, "remaining")->valueint;
+  gateway->session_start_limit.reset_after = cJSON_GetObjectItemCaseSensitive(limit, "reset_after")->valueint;
+  gateway->session_start_limit.max_concurrency = cJSON_GetObjectItemCaseSensitive(limit, "max_concurrency")->valueint;
+
+  cJSON_Delete(json);
+  free(res);
+
+  return gateway;
+}
+
 struct DisqueUser *
 disque_get_current_user(struct DisqueContext *ctx)
 {
   CURL *curl;
-  char *response;
+  char *res;
   struct DisqueUser *user;
 
   curl_global_init(CURL_GLOBAL_ALL);
@@ -75,16 +106,16 @@ disque_get_current_user(struct DisqueContext *ctx)
   if (!curl)
     return NULL;
   curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/users/@me");
-  response = disque_request(curl, ctx);
+  res = disque_request(curl, ctx);
 
-  cJSON *json = cJSON_Parse(response);
+  cJSON *json = cJSON_Parse(res);
   cJSON *username = cJSON_GetObjectItemCaseSensitive(json, "username");
 
   user = malloc(sizeof(struct DisqueUser));
   strcpy(user->username, username->valuestring);
 
   cJSON_Delete(json);
-  free(response);
+  free(res);
 
   return user;
 }
