@@ -10,7 +10,7 @@
 
   buildPhase = ''
     gcc -c disque.c -o disque.o
-    gcc -shared -o libdisque.so disque.o
+    gcc -shared -o libdisque.so -lcurl disque.o
   '';
 
   installPhase = ''
