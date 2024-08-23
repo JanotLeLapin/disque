@@ -31,20 +31,37 @@ disque_connect_gateway(struct DisqueContext *ctx, char *url)
   ctx->curl = curl;
 }
 
-char *
+struct DisqueEvent *
 disque_recv(struct DisqueContext *ctx)
 {
   size_t len;
   const struct curl_ws_frame *meta;
   char buffer[2048];
   char *packet;
+  cJSON *json, *d;
+  struct DisqueEvent *event = NULL;
 
   curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
   packet = malloc(len + 1);
   strncpy(packet, buffer, len);
-  packet[len - 1] = '\0';
+  packet[len] = '\0';
 
-  return packet;
+  json = cJSON_Parse(packet);
+  d = cJSON_GetObjectItemCaseSensitive(json, "d");
+  cJSON *foo = cJSON_GetObjectItemCaseSensitive(json, "op");
+  switch (cJSON_GetObjectItemCaseSensitive(json, "op")->valueint) {
+    case 10:
+      event = malloc(sizeof(struct DisqueEvent));
+      event->type = DQ_HELLO;
+      event->data.hello.heartbeat_interval = cJSON_GetObjectItemCaseSensitive(d, "heartbeat_interval")->valueint;
+      break;
+    default:
+      break;
+  }
+
+  cJSON_Delete(json);
+
+  return event;
 }
 
 void
