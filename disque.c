@@ -69,7 +69,7 @@ void disque_global_init()
 }
 
 struct DisqueGatewayResponse *
-disque_get_gateway_response(struct DisqueContext *ctx)
+disque_get_gateway(struct DisqueContext *ctx)
 {
   CURL *curl;
   char *res;
@@ -96,6 +96,45 @@ disque_get_gateway_response(struct DisqueContext *ctx)
   free(res);
 
   return gateway;
+}
+
+void
+disque_connect_gateway(struct DisqueContext *ctx, char *url)
+{
+  CURL* curl;
+  CURLcode res;
+
+  printf("connecting to %s\n", url);
+
+  curl = curl_easy_init();
+  if (!curl)
+    return;
+
+  printf("init done\n");
+
+  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
+
+  res = curl_easy_perform(curl);
+
+  if (CURLE_OK != res)
+    return;
+
+  printf("perform done\n");
+
+  ctx->curl = curl;
+}
+
+char *
+disque_recv(struct DisqueContext *ctx)
+{
+  size_t len;
+  const struct curl_ws_frame *meta;
+  char buffer[1024];
+
+  curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
+  printf("'%s'\n", buffer);
+  return "teehee";
 }
 
 struct DisqueUser *

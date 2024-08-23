@@ -6,7 +6,11 @@
   pname = "disque";
   version = "0.1";
 
-  buildInputs = [ gcc curl cjson ];
+  buildInputs = [
+    gcc
+    (curl.override { websocketSupport = true; })
+    cjson
+  ];
   src = ./.;
 
   buildPhase = ''
