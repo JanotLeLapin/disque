@@ -2,7 +2,8 @@
 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void disque_global_init()
 {
@@ -35,9 +36,13 @@ disque_recv(struct DisqueContext *ctx)
 {
   size_t len;
   const struct curl_ws_frame *meta;
-  char buffer[1024];
+  char buffer[2048];
+  char *packet;
 
   curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
-  printf("'%s'\n", buffer);
-  return "teehee";
+  packet = malloc(len + 1);
+  strncpy(packet, buffer, len);
+  packet[len - 1] = '\0';
+
+  return packet;
 }
