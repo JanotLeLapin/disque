@@ -15,13 +15,9 @@ disque_connect_gateway(struct DisqueContext *ctx, char *url)
   CURL* curl;
   CURLcode res;
 
-  printf("connecting to %s\n", url);
-
   curl = curl_easy_init();
   if (!curl)
     return;
-
-  printf("init done\n");
 
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
@@ -30,8 +26,6 @@ disque_connect_gateway(struct DisqueContext *ctx, char *url)
 
   if (CURLE_OK != res)
     return;
-
-  printf("perform done\n");
 
   ctx->curl = curl;
 }
