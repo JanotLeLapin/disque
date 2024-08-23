@@ -1,6 +1,7 @@
 #include "disque.h"
 
 #include <curl/curl.h>
+#include <cjson/cJSON.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +29,7 @@ write_callback(void *contents, size_t size, size_t nmemb, void *userp)
   return realsize;
 }
 
-char *
+struct DisqueUser *
 disque_get_current_user(struct DisqueContext *ctx)
 {
   CURL *curl;
@@ -36,6 +37,7 @@ disque_get_current_user(struct DisqueContext *ctx)
   struct curl_slist *headers = NULL;
   char header[128];
   struct ResponseBody response;
+  struct DisqueUser *user = malloc(sizeof(struct DisqueUser));
 
   curl_global_init(CURL_GLOBAL_ALL);
 
@@ -65,5 +67,13 @@ disque_get_current_user(struct DisqueContext *ctx)
   curl_easy_cleanup(curl);
   curl_slist_free_all(headers);
 
-  return response.content;
+  cJSON *json = cJSON_Parse(response.content);
+  cJSON *username = cJSON_GetObjectItemCaseSensitive(json, "username");
+
+  strcpy(user->username, username->valuestring);
+
+  cJSON_Delete(json);
+  free(response.content);
+
+  return user;
 }

@@ -1,7 +1,8 @@
 { gcc
 , curl
+, cjson
 , clang-tools
 , mkShell
 }: mkShell {
-  buildInputs = [ gcc curl clang-tools ];
+  buildInputs = [ gcc curl cjson clang-tools ];
 }

@@ -1,16 +1,17 @@
 { gcc
 , curl
+, cjson
 , stdenv
 }: stdenv.mkDerivation {
   pname = "disque";
   version = "0.1";
 
-  buildInputs = [ gcc curl ];
+  buildInputs = [ gcc curl cjson ];
   src = ./.;
 
   buildPhase = ''
     gcc -c disque.c -o disque.o
-    gcc -shared -o libdisque.so -lcurl disque.o
+    gcc -shared -o libdisque.so -lcurl -lcjson disque.o
   '';
 
   installPhase = ''
