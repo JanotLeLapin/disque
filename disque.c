@@ -46,3 +46,9 @@ disque_recv(struct DisqueContext *ctx)
 
   return packet;
 }
+
+void
+disque_free_gateway(struct DisqueContext *ctx)
+{
+  curl_easy_cleanup(ctx->curl);
+}
