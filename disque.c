@@ -63,6 +63,11 @@ disque_request(CURL *curl, struct DisqueContext *ctx)
   return res.content;
 }
 
+void disque_global_init()
+{
+  curl_global_init(CURL_GLOBAL_ALL);
+}
+
 struct DisqueGatewayResponse *
 disque_get_gateway_response(struct DisqueContext *ctx)
 {
@@ -70,7 +75,6 @@ disque_get_gateway_response(struct DisqueContext *ctx)
   char *res;
   struct DisqueGatewayResponse *gateway;
 
-  curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   if (!curl)
     return NULL;
@@ -101,7 +105,6 @@ disque_get_current_user(struct DisqueContext *ctx)
   char *res;
   struct DisqueUser *user;
 
-  curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   if (!curl)
     return NULL;
