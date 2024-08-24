@@ -74,6 +74,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
       break;
     case 11:
       res->type = DQE_ACK;
+      break;
     default:
       res->type = DQE_UNKNOWN;
       break;
