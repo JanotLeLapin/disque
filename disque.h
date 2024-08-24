@@ -1,6 +1,8 @@
 struct DisqueContext {
   const char *token;
   void *curl;
+  void *curlm;
+  int running;
 };
 
 struct DisqueGatewayResponse {

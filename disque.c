@@ -14,34 +14,51 @@ void
 disque_connect_gateway(struct DisqueContext *ctx, char *url)
 {
   CURL* curl;
-  CURLcode res;
+  CURLM *curlm;
 
   curl = curl_easy_init();
   if (!curl)
     return;
 
+  curlm = curl_multi_init();
+  if (!curlm)
+    return;
+
+  curl_multi_add_handle(curlm, curl);
+
   curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
 
-  res = curl_easy_perform(curl);
-
-  if (CURLE_OK != res)
-    return;
-
   ctx->curl = curl;
+  ctx->curlm = curlm;
 }
 
 struct DisqueEvent *
 disque_recv(struct DisqueContext *ctx)
 {
+  CURLMcode mc;
   size_t len;
   const struct curl_ws_frame *meta;
   char buffer[2048];
+  int res;
   char *packet;
   cJSON *json, *d;
   struct DisqueEvent *event = NULL;
 
-  curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
+  mc = curl_multi_perform(ctx->curlm, &ctx->running);
+  if (ctx->running) {
+    mc = curl_multi_poll(ctx->curlm, NULL, 0, 1000, NULL);
+  }
+
+  if (mc) {
+    return NULL;
+  }
+
+  res = curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
+  if (CURLE_AGAIN == res || CURLE_OK != res) {
+    return NULL;
+  }
+
   packet = malloc(len + 1);
   strncpy(packet, buffer, len);
   packet[len] = '\0';
@@ -60,6 +77,7 @@ disque_recv(struct DisqueContext *ctx)
   }
 
   cJSON_Delete(json);
+  free(packet);
 
   return event;
 }
@@ -67,5 +85,7 @@ disque_recv(struct DisqueContext *ctx)
 void
 disque_free_gateway(struct DisqueContext *ctx)
 {
+  curl_multi_remove_handle(ctx->curlm, ctx->curl);
+  curl_multi_cleanup(ctx->curlm);
   curl_easy_cleanup(ctx->curl);
 }
