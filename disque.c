@@ -2,6 +2,7 @@
 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
   char buffer[2048];
   int result;
   char *packet;
-  cJSON *json, *d;
+  cJSON *json, *d, *s;
 
   mc = curl_multi_perform(ctx->curlm, &ctx->running);
   if (ctx->running)
@@ -75,10 +76,33 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
       break;
   }
 
+  s = cJSON_GetObjectItemCaseSensitive(json, "s");
+  if (cJSON_IsNumber(s))
+    ctx->seq = s->valueint;
+
   cJSON_Delete(json);
   free(packet);
 
   return DQC_OK;
+}
+
+enum DisqueCode
+disque_send_heartbeat(struct DisqueContext *ctx)
+{
+  char payload[256];
+  char seq[16];
+  size_t sent;
+
+  if (ctx->seq)
+    sprintf(seq, "%d", ctx->seq);
+  else
+    strcpy(seq, "null");
+  
+  strcpy(payload, "{\"op\":1,\"d\":");
+  strcat(payload, seq);
+  strcat(payload, "}");
+
+  return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
 
 void
