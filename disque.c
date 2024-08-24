@@ -117,14 +117,19 @@ disque_send_heartbeat(struct DisqueContext *ctx)
 }
 
 enum DisqueCode
-disque_send_identify(struct DisqueContext *ctx)
+disque_send_identify(struct DisqueContext *ctx, int intents)
 {
   char payload[512];
+  char intents_s[9];
   size_t sent;
+
+  sprintf(intents_s, "%d", intents);
 
   strcpy(payload, "{\"op\":2,\"d\":{\"token\":\"");
   strcat(payload, ctx->token);
-  strcat(payload, "\",\"properties\":{\"os\":\"linux\",\"browser\":\"disque\",\"device\":\"disque\"},\"intents\":0}}");
+  strcat(payload, "\",\"properties\":{\"os\":\"linux\",\"browser\":\"disque\",\"device\":\"disque\"},\"intents\":");
+  strcat(payload, intents_s);
+  strcat(payload, "}}");
 
   return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
