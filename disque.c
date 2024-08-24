@@ -5,12 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-void disque_global_init()
+enum DisqueCode
+disque_global_init()
 {
-  curl_global_init(CURL_GLOBAL_ALL);
+  return curl_global_init(CURL_GLOBAL_ALL) ? DQC_ERROR : DQC_OK;
 }
 
-void
+enum DisqueCode
 disque_connect_gateway(struct DisqueContext *ctx, char *url)
 {
   CURL* curl;
@@ -18,11 +19,11 @@ disque_connect_gateway(struct DisqueContext *ctx, char *url)
 
   curl = curl_easy_init();
   if (!curl)
-    return;
+    return DQC_ERROR;
 
   curlm = curl_multi_init();
   if (!curlm)
-    return;
+    return DQC_ERROR;
 
   curl_multi_add_handle(curlm, curl);
 
@@ -31,33 +32,32 @@ disque_connect_gateway(struct DisqueContext *ctx, char *url)
 
   ctx->curl = curl;
   ctx->curlm = curlm;
+
+  return DQC_OK;
 }
 
-struct DisqueEvent *
-disque_recv(struct DisqueContext *ctx)
+enum DisqueCode
+disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
 {
   CURLMcode mc;
   size_t len;
   const struct curl_ws_frame *meta;
   char buffer[2048];
-  int res;
+  int result;
   char *packet;
   cJSON *json, *d;
-  struct DisqueEvent *event = NULL;
 
   mc = curl_multi_perform(ctx->curlm, &ctx->running);
-  if (ctx->running) {
+  if (ctx->running)
     mc = curl_multi_poll(ctx->curlm, NULL, 0, 1000, NULL);
-  }
 
-  if (mc) {
-    return NULL;
-  }
+  if (mc)
+    return DQC_ERROR;
 
-  res = curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
-  if (CURLE_AGAIN == res || CURLE_OK != res) {
-    return NULL;
-  }
+  result = curl_ws_recv(ctx->curl, buffer, sizeof(buffer), &len, &meta);
+  if (result)
+    /* we might want to find out whether curl_ws_recv failed */
+    return DQC_AGAIN;
 
   packet = malloc(len + 1);
   strncpy(packet, buffer, len);
@@ -68,9 +68,8 @@ disque_recv(struct DisqueContext *ctx)
   cJSON *foo = cJSON_GetObjectItemCaseSensitive(json, "op");
   switch (cJSON_GetObjectItemCaseSensitive(json, "op")->valueint) {
     case 10:
-      event = malloc(sizeof(struct DisqueEvent));
-      event->type = DQ_HELLO;
-      event->data.hello.heartbeat_interval = cJSON_GetObjectItemCaseSensitive(d, "heartbeat_interval")->valueint;
+      res->type = DQE_HELLO;
+      res->data.hello.heartbeat_interval = cJSON_GetObjectItemCaseSensitive(d, "heartbeat_interval")->valueint;
       break;
     default:
       break;
@@ -79,7 +78,7 @@ disque_recv(struct DisqueContext *ctx)
   cJSON_Delete(json);
   free(packet);
 
-  return event;
+  return DQC_OK;
 }
 
 void

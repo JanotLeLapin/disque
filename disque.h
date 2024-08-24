@@ -5,6 +5,12 @@ struct DisqueContext {
   int running;
 };
 
+enum DisqueCode {
+  DQC_OK = 0,
+  DQC_ERROR,
+  DQC_AGAIN,
+};
+
 struct DisqueGatewayResponse {
   char url[128];
   char shards;
@@ -17,7 +23,7 @@ struct DisqueGatewayResponse {
 };
 
 enum DisqueEventType {
-  DQ_HELLO,
+  DQE_HELLO,
 };
 
 struct DisqueEvent {
@@ -33,11 +39,11 @@ struct DisqueUser {
   char username[32];
 };
 
-void disque_global_init();
+enum DisqueCode disque_global_init();
 
-struct DisqueGatewayResponse *disque_get_gateway(struct DisqueContext *ctx);
-void disque_connect_gateway(struct DisqueContext *ctx, char *url);
-struct DisqueEvent *disque_recv(struct DisqueContext *ctx);
+enum DisqueCode disque_connect_gateway(struct DisqueContext *ctx, char *url);
+enum DisqueCode disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res);
 void disque_free_gateway(struct DisqueContext *ctx);
 
-struct DisqueUser *disque_get_current_user(struct DisqueContext *ctx);
+enum DisqueCode disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res);
+enum DisqueCode disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res);

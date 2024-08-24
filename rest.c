@@ -62,56 +62,52 @@ disque_request(CURL *curl, struct DisqueContext *ctx)
   return res.content;
 }
 
-struct DisqueGatewayResponse *
-disque_get_gateway(struct DisqueContext *ctx)
+enum DisqueCode
+disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res)
 {
   CURL *curl;
-  char *res;
-  struct DisqueGatewayResponse *gateway;
+  char *result;
 
   curl = curl_easy_init();
   if (!curl)
-    return NULL;
+    return DQC_ERROR;
   curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/gateway/bot");
-  res = disque_request(curl, ctx);
+  result = disque_request(curl, ctx);
 
-  gateway = malloc(sizeof(struct DisqueGatewayResponse));
-  cJSON *json = cJSON_Parse(res);
+  cJSON *json = cJSON_Parse(result);
   cJSON *limit = cJSON_GetObjectItemCaseSensitive(json, "session_start_limit");
-  strcpy(gateway->url, cJSON_GetObjectItemCaseSensitive(json, "url")->valuestring);
-  gateway->shards = cJSON_GetObjectItemCaseSensitive(json, "shards")->valueint;
-  gateway->session_start_limit.total = cJSON_GetObjectItemCaseSensitive(limit, "total")->valueint;
-  gateway->session_start_limit.remaining = cJSON_GetObjectItemCaseSensitive(limit, "remaining")->valueint;
-  gateway->session_start_limit.reset_after = cJSON_GetObjectItemCaseSensitive(limit, "reset_after")->valueint;
-  gateway->session_start_limit.max_concurrency = cJSON_GetObjectItemCaseSensitive(limit, "max_concurrency")->valueint;
+  strcpy(res->url, cJSON_GetObjectItemCaseSensitive(json, "url")->valuestring);
+  res->shards = cJSON_GetObjectItemCaseSensitive(json, "shards")->valueint;
+  res->session_start_limit.total = cJSON_GetObjectItemCaseSensitive(limit, "total")->valueint;
+  res->session_start_limit.remaining = cJSON_GetObjectItemCaseSensitive(limit, "remaining")->valueint;
+  res->session_start_limit.reset_after = cJSON_GetObjectItemCaseSensitive(limit, "reset_after")->valueint;
+  res->session_start_limit.max_concurrency = cJSON_GetObjectItemCaseSensitive(limit, "max_concurrency")->valueint;
 
   cJSON_Delete(json);
-  free(res);
+  free(result);
 
-  return gateway;
+  return DQC_OK;
 }
 
-struct DisqueUser *
-disque_get_current_user(struct DisqueContext *ctx)
+enum DisqueCode
+disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res)
 {
   CURL *curl;
-  char *res;
+  char *result;
   struct DisqueUser *user;
 
   curl = curl_easy_init();
   if (!curl)
-    return NULL;
+    return DQC_ERROR;
   curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/users/@me");
-  res = disque_request(curl, ctx);
+  result = disque_request(curl, ctx);
 
-  cJSON *json = cJSON_Parse(res);
-  cJSON *username = cJSON_GetObjectItemCaseSensitive(json, "username");
+  cJSON *json = cJSON_Parse(result);
 
-  user = malloc(sizeof(struct DisqueUser));
-  strcpy(user->username, username->valuestring);
+  strcpy(res->username, cJSON_GetObjectItemCaseSensitive(json, "username")->valuestring);
 
   cJSON_Delete(json);
-  free(res);
+  free(result);
 
-  return user;
+  return DQC_OK;
 }
