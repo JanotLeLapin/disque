@@ -72,6 +72,8 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
       res->type = DQE_HELLO;
       res->data.hello.heartbeat_interval = cJSON_GetObjectItemCaseSensitive(d, "heartbeat_interval")->valueint;
       break;
+    case 11:
+      res->type = DQE_ACK;
     default:
       break;
   }
