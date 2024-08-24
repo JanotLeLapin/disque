@@ -24,6 +24,7 @@ struct DisqueGatewayResponse {
 };
 
 enum DisqueEventType {
+  DQE_UNKNOWN = 0,
   DQE_HELLO,
   DQE_ACK,
 };
