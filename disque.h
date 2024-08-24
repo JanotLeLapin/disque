@@ -46,6 +46,7 @@ enum DisqueCode disque_global_init();
 enum DisqueCode disque_connect_gateway(struct DisqueContext *ctx, char *url);
 enum DisqueCode disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res);
 enum DisqueCode disque_send_heartbeat(struct DisqueContext *ctx);
+enum DisqueCode disque_send_identify(struct DisqueContext *ctx);
 void disque_free_gateway(struct DisqueContext *ctx);
 
 enum DisqueCode disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res);

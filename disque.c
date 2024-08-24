@@ -107,6 +107,21 @@ disque_send_heartbeat(struct DisqueContext *ctx)
   return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
 
+enum DisqueCode
+disque_send_identify(struct DisqueContext *ctx)
+{
+  char payload[512];
+  size_t sent;
+
+  strcpy(payload, "{\"op\":2,\"d\":{\"token\":\"");
+  strcat(payload, ctx->token);
+  strcat(payload, "\",\"properties\":{\"os\":\"linux\",\"browser\":\"disque\",\"device\":\"disque\"},\"intents\":0}}");
+
+  printf("%s\n", payload);
+
+  return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
+}
+
 void
 disque_free_gateway(struct DisqueContext *ctx)
 {
