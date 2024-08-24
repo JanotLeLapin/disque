@@ -126,8 +126,6 @@ disque_send_identify(struct DisqueContext *ctx)
   strcat(payload, ctx->token);
   strcat(payload, "\",\"properties\":{\"os\":\"linux\",\"browser\":\"disque\",\"device\":\"disque\"},\"intents\":0}}");
 
-  printf("%s\n", payload);
-
   return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
 
