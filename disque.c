@@ -72,6 +72,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
       cJSON *user= cJSON_GetObjectItemCaseSensitive(d, "user");
       res->type = DQE_READY;
       strcpy(res->data.ready.user.username, cJSON_GetObjectItemCaseSensitive(user, "username")->valuestring);
+      strcpy(res->data.ready.user.discriminator, cJSON_GetObjectItemCaseSensitive(user, "discriminator")->valuestring);
       break;
     }
     case 10:

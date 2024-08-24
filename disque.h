@@ -13,7 +13,8 @@ enum DisqueCode {
 };
 
 struct DisqueUser {
-  char username[32];
+  char username[33];
+  char discriminator[5];
 };
 
 struct DisqueGatewayResponse {

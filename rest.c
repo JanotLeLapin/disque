@@ -105,6 +105,7 @@ disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res)
   cJSON *json = cJSON_Parse(result);
 
   strcpy(res->username, cJSON_GetObjectItemCaseSensitive(json, "username")->valuestring);
+  strcpy(res->discriminator, cJSON_GetObjectItemCaseSensitive(json, "discriminator")->valuestring);
 
   cJSON_Delete(json);
   free(result);
