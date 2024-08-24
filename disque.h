@@ -12,6 +12,10 @@ enum DisqueCode {
   DQC_AGAIN,
 };
 
+struct DisqueUser {
+  char username[32];
+};
+
 struct DisqueGatewayResponse {
   char url[128];
   char shards;
@@ -25,6 +29,7 @@ struct DisqueGatewayResponse {
 
 enum DisqueEventType {
   DQE_UNKNOWN = 0,
+  DQE_READY,
   DQE_HELLO,
   DQE_ACK,
 };
@@ -33,13 +38,12 @@ struct DisqueEvent {
   enum DisqueEventType type;
   union {
     struct {
+      struct DisqueUser user;
+    } ready;
+    struct {
       int heartbeat_interval;
     } hello;
   } data;
-};
-
-struct DisqueUser {
-  char username[32];
 };
 
 enum DisqueCode disque_global_init();

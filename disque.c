@@ -68,6 +68,12 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
   d = cJSON_GetObjectItemCaseSensitive(json, "d");
   cJSON *foo = cJSON_GetObjectItemCaseSensitive(json, "op");
   switch (cJSON_GetObjectItemCaseSensitive(json, "op")->valueint) {
+    case 0: {
+      cJSON *user= cJSON_GetObjectItemCaseSensitive(d, "user");
+      res->type = DQE_READY;
+      strcpy(res->data.ready.user.username, cJSON_GetObjectItemCaseSensitive(user, "username")->valuestring);
+      break;
+    }
     case 10:
       res->type = DQE_HELLO;
       res->data.hello.heartbeat_interval = cJSON_GetObjectItemCaseSensitive(d, "heartbeat_interval")->valueint;
