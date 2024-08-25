@@ -24,6 +24,9 @@ struct DisqueUser {
 };
 
 struct DisqueMessage {
+  long id;
+  long channel_id;
+  struct DisqueUser author;
   char content[1024];
 };
 

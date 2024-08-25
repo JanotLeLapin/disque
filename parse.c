@@ -24,3 +24,16 @@ disque_parse_user(void *json, struct DisqueUser *res)
   tmp = cJSON_GetObjectItemCaseSensitive(json, "banner");
   strcpy(res->banner, cJSON_IsString(tmp) ? tmp->valuestring : "\0");
 }
+
+void
+disque_parse_message(void *json, struct DisqueMessage *res)
+{
+  cJSON *tmp;
+
+  res->id = strtol(cJSON_GetObjectItemCaseSensitive(json, "id")->valuestring, NULL, 10);
+  res->channel_id = strtol(cJSON_GetObjectItemCaseSensitive(json, "channel_id")->valuestring, NULL, 10);
+  strcpy(res->content, cJSON_GetObjectItemCaseSensitive(json, "content")->valuestring);
+
+  tmp = cJSON_GetObjectItemCaseSensitive(json, "author");
+  if (cJSON_IsObject(tmp)) disque_parse_user(tmp, &res->author);
+}

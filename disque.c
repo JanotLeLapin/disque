@@ -89,7 +89,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
         disque_parse_user(cJSON_GetObjectItemCaseSensitive(d, "user"), &res->data.ready.user);
       } else if (!strcmp("MESSAGE_CREATE", etype)) {
         res->type = DQE_MESSAGE_CREATE;
-        strcpy(res->data.message_create.content, cJSON_GetObjectItemCaseSensitive(d, "content")->valuestring);
+        disque_parse_message(d, &res->data.message_create);
       } else {
         res->type = DQE_UNKNOWN;
       }
