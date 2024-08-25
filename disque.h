@@ -13,8 +13,14 @@ enum DisqueCode {
 };
 
 struct DisqueUser {
+  long id;
   char username[33];
+  char global_name[33];
   char discriminator[5];
+  char is_bot;
+  char is_system;
+  char avatar[40];
+  char banner[40];
 };
 
 struct DisqueMessage {
