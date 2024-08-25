@@ -105,3 +105,4 @@ void disque_free_gateway(struct DisqueContext *ctx);
 /* REST */
 enum DisqueCode disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res);
 enum DisqueCode disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res);
+enum DisqueCode disque_create_message(struct DisqueContext *ctx, long channel, char *message);

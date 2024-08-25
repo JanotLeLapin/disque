@@ -2,6 +2,7 @@
 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,10 +30,9 @@ write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 }
 
 char *
-disque_request(CURL *curl, struct DisqueContext *ctx)
+disque_request(CURL *curl, struct curl_slist *headers, struct DisqueContext *ctx)
 {
   CURLcode code;
-  struct curl_slist *headers = NULL;
   char header[128];
   struct ResponseBody res;
 
@@ -72,7 +72,7 @@ disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res)
   if (!curl)
     return DQC_ERROR;
   curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/gateway/bot");
-  result = disque_request(curl, ctx);
+  result = disque_request(curl, NULL, ctx);
 
   cJSON *json = cJSON_Parse(result);
   cJSON *limit = cJSON_GetObjectItemCaseSensitive(json, "session_start_limit");
@@ -100,11 +100,40 @@ disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res)
   if (!curl)
     return DQC_ERROR;
   curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/users/@me");
-  result = disque_request(curl, ctx);
+  result = disque_request(curl, NULL, ctx);
 
   cJSON *json = cJSON_Parse(result);
   disque_parse_user(json, res);
   cJSON_Delete(json);
+  free(result);
+
+  return DQC_OK;
+}
+
+enum DisqueCode
+disque_create_message(struct DisqueContext *ctx, long channel, char *message)
+{
+  CURL *curl;
+  char *result;
+  struct curl_slist *headers;
+
+  char url[128];
+  snprintf(url, 128, "https://discord.com/api/v10/channels/%ld/messages", channel);
+
+  char body[1024];
+  snprintf(body, 1024, "{\"content\":\"%s\"}", message);
+
+  headers = curl_slist_append(NULL, "Content-Type: application/json");
+
+  curl = curl_easy_init();
+  if (!curl)
+    return DQC_ERROR;
+  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L);
+
+  result = disque_request(curl, headers, ctx);
+  printf("%s\n", result);
   free(result);
 
   return DQC_OK;
