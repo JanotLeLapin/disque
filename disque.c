@@ -47,6 +47,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
   int result;
   char *packet;
   cJSON *json, *d, *s;
+  char *etype;
 
   mc = curl_multi_perform(ctx->curlm, &ctx->running);
   if (ctx->running)
@@ -69,10 +70,15 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
   cJSON *foo = cJSON_GetObjectItemCaseSensitive(json, "op");
   switch (cJSON_GetObjectItemCaseSensitive(json, "op")->valueint) {
     case 0: {
-      cJSON *user= cJSON_GetObjectItemCaseSensitive(d, "user");
-      res->type = DQE_READY;
-      strcpy(res->data.ready.user.username, cJSON_GetObjectItemCaseSensitive(user, "username")->valuestring);
-      strcpy(res->data.ready.user.discriminator, cJSON_GetObjectItemCaseSensitive(user, "discriminator")->valuestring);
+      etype = cJSON_GetObjectItemCaseSensitive(json, "t")->valuestring;
+      if (!strcmp("READY", etype)) {
+        cJSON *user= cJSON_GetObjectItemCaseSensitive(d, "user");
+        res->type = DQE_READY;
+        strcpy(res->data.ready.user.username, cJSON_GetObjectItemCaseSensitive(user, "username")->valuestring);
+        strcpy(res->data.ready.user.discriminator, cJSON_GetObjectItemCaseSensitive(user, "discriminator")->valuestring);
+      } else {
+        res->type = DQE_UNKNOWN;
+      }
       break;
     }
     case 10:
