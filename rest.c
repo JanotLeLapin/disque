@@ -1,4 +1,4 @@
-#include "disque.h"
+#include "parse.h"
 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
@@ -103,10 +103,7 @@ disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res)
   result = disque_request(curl, ctx);
 
   cJSON *json = cJSON_Parse(result);
-
-  strcpy(res->username, cJSON_GetObjectItemCaseSensitive(json, "username")->valuestring);
-  strcpy(res->discriminator, cJSON_GetObjectItemCaseSensitive(json, "discriminator")->valuestring);
-
+  disque_parse_user(json, res);
   cJSON_Delete(json);
   free(result);
 

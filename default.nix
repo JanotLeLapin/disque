@@ -16,7 +16,8 @@
   buildPhase = ''
     gcc -c disque.c -o disque.o
     gcc -c rest.c -o rest.o
-    gcc -shared -o libdisque.so -lcurl -lcjson disque.o rest.o
+    gcc -c parse.c -o parse.o
+    gcc -shared -o libdisque.so -lcurl -lcjson disque.o rest.o parse.o
   '';
 
   installPhase = ''

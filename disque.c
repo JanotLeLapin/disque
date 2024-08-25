@@ -1,4 +1,4 @@
-#include "disque.h"
+#include "parse.h"
 
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
@@ -74,8 +74,7 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
       if (!strcmp("READY", etype)) {
         cJSON *user= cJSON_GetObjectItemCaseSensitive(d, "user");
         res->type = DQE_READY;
-        strcpy(res->data.ready.user.username, cJSON_GetObjectItemCaseSensitive(user, "username")->valuestring);
-        strcpy(res->data.ready.user.discriminator, cJSON_GetObjectItemCaseSensitive(user, "discriminator")->valuestring);
+        disque_parse_user(cJSON_GetObjectItemCaseSensitive(d, "user"), &res->data.ready.user);
       } else if (!strcmp("MESSAGE_CREATE", etype)) {
         res->type = DQE_MESSAGE_CREATE;
         strcpy(res->data.message_create.content, cJSON_GetObjectItemCaseSensitive(d, "content")->valuestring);
