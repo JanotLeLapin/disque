@@ -17,6 +17,10 @@ struct DisqueUser {
   char discriminator[5];
 };
 
+struct DisqueMessage {
+  char content[1024];
+};
+
 struct DisqueGatewayResponse {
   char url[128];
   char shards;
@@ -30,20 +34,25 @@ struct DisqueGatewayResponse {
 
 enum DisqueEventType {
   DQE_UNKNOWN = 0,
-  DQE_READY,
+
   DQE_HELLO,
   DQE_ACK,
+
+  DQE_READY,
+  DQE_MESSAGE_CREATE,
 };
 
 struct DisqueEvent {
   enum DisqueEventType type;
   union {
     struct {
-      struct DisqueUser user;
-    } ready;
-    struct {
       int heartbeat_interval;
     } hello;
+
+    struct {
+      struct DisqueUser user;
+    } ready;
+    struct DisqueMessage message_create;
   } data;
 };
 
