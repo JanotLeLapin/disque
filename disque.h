@@ -86,6 +86,11 @@ enum DisqueIntents {
   DQI_DIRECT_MESSAGE_POLLS = 1 << 25,
 };
 
+/* UTIL */
+void disque_cdn_avatar(long id, const char *hash, char *buffer, typeof(sizeof(0)) size);
+void disque_cdn_banner(long id, const char *hash, char *buffer, typeof(sizeof(0)) size);
+
+/* GATEWAY */
 enum DisqueCode disque_global_init();
 
 enum DisqueCode disque_connect_gateway(struct DisqueContext *ctx, char *url);
@@ -94,5 +99,6 @@ enum DisqueCode disque_send_heartbeat(struct DisqueContext *ctx);
 enum DisqueCode disque_send_identify(struct DisqueContext *ctx, int intents);
 void disque_free_gateway(struct DisqueContext *ctx);
 
+/* REST */
 enum DisqueCode disque_get_gateway(struct DisqueContext *ctx, struct DisqueGatewayResponse *res);
 enum DisqueCode disque_get_current_user(struct DisqueContext *ctx, struct DisqueUser *res);
