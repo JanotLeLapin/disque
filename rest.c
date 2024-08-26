@@ -116,11 +116,10 @@ disque_create_message(struct DisqueContext *ctx, long channel, char *message)
   CURL *curl;
   char *result;
   struct curl_slist *headers;
-
   char url[128];
-  snprintf(url, 128, "https://discord.com/api/v10/channels/%ld/messages", channel);
-
   char body[1024];
+
+  snprintf(url, 128, "https://discord.com/api/v10/channels/%ld/messages", channel);
   snprintf(body, 1024, "{\"content\":\"%s\"}", message);
 
   headers = curl_slist_append(NULL, "Content-Type: application/json");
@@ -133,7 +132,6 @@ disque_create_message(struct DisqueContext *ctx, long channel, char *message)
   curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L);
 
   result = disque_request(curl, headers, ctx);
-  printf("%s\n", result);
   free(result);
 
   return DQC_OK;
