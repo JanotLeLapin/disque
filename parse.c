@@ -1,3 +1,4 @@
+#include "disque.h"
 #include "parse.h"
 
 #include <cjson/cJSON.h>

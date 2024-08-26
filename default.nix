@@ -14,10 +14,11 @@
   src = ./.;
 
   buildPhase = ''
-    gcc -c disque.c -o disque.o
+    gcc -c util.c -o util.o
+    gcc -c gateway.c -o gateway.o
     gcc -c rest.c -o rest.o
     gcc -c parse.c -o parse.o
-    gcc -shared -o libdisque.so -lcurl -lcjson disque.o rest.o parse.o
+    gcc -shared -o libdisque.so -lcurl -lcjson util.o gateway.o rest.o parse.o
   '';
 
   installPhase = ''
