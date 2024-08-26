@@ -120,38 +120,46 @@ disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res)
 enum DisqueCode
 disque_send_heartbeat(struct DisqueContext *ctx)
 {
-  char payload[256];
-  char seq[16];
+  cJSON *payload;
+  char buffer[32];
   size_t sent;
 
+  payload = cJSON_CreateObject();
+  cJSON_AddNumberToObject(payload, "op", 1);
   if (ctx->seq)
-    sprintf(seq, "%d", ctx->seq);
+    cJSON_AddNullToObject(payload, "d");
   else
-    strcpy(seq, "null");
-  
-  strcpy(payload, "{\"op\":1,\"d\":");
-  strcat(payload, seq);
-  strcat(payload, "}");
+    cJSON_AddNumberToObject(payload, "d", ctx->seq);
 
-  return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
+  cJSON_PrintPreallocated(payload, buffer, 32, 0);
+  cJSON_Delete(payload);
+
+  return curl_ws_send(ctx->curl, buffer, strlen(buffer), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
 
 enum DisqueCode
 disque_send_identify(struct DisqueContext *ctx, int intents)
 {
-  char payload[512];
-  char intents_s[9];
+  cJSON *payload, *d, *p;
+  char buffer[256];
   size_t sent;
 
-  sprintf(intents_s, "%d", intents);
+  p = cJSON_CreateObject();
+  cJSON_AddStringToObject(p, "os", "linux");
+  cJSON_AddStringToObject(p, "browser", "disque");
+  cJSON_AddStringToObject(p, "device", "disque");
+  d = cJSON_CreateObject();
+  cJSON_AddStringToObject(d, "token", ctx->token);
+  cJSON_AddNumberToObject(d, "intents", intents);
+  cJSON_AddItemToObject(d, "properties", p);
+  payload = cJSON_CreateObject();
+  cJSON_AddNumberToObject(payload, "op", 2);
+  cJSON_AddItemToObject(payload, "d", d);
 
-  strcpy(payload, "{\"op\":2,\"d\":{\"token\":\"");
-  strcat(payload, ctx->token);
-  strcat(payload, "\",\"properties\":{\"os\":\"linux\",\"browser\":\"disque\",\"device\":\"disque\"},\"intents\":");
-  strcat(payload, intents_s);
-  strcat(payload, "}}");
+  cJSON_PrintPreallocated(payload, buffer, 512, 0);
+  cJSON_Delete(payload);
 
-  return curl_ws_send(ctx->curl, payload, strlen(payload), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
+  return curl_ws_send(ctx->curl, buffer, strlen(buffer), &sent, 0, CURLWS_TEXT) ? DQC_ERROR : DQC_OK;
 }
 
 void
