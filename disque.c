@@ -138,23 +138,51 @@ disque_send_heartbeat(struct DisqueContext *ctx)
 }
 
 enum DisqueCode
-disque_send_identify(struct DisqueContext *ctx, int intents)
+disque_send_identify(struct DisqueContext *ctx, int intents, struct DisqueUpdatePresence *presence)
 {
-  cJSON *payload, *d, *p;
-  char buffer[256];
+  cJSON *payload, *json_d, *json_properties, *json_presence, *json_activities, *json_activity;
+  char buffer[512];
   size_t sent;
 
-  p = cJSON_CreateObject();
-  cJSON_AddStringToObject(p, "os", "linux");
-  cJSON_AddStringToObject(p, "browser", "disque");
-  cJSON_AddStringToObject(p, "device", "disque");
-  d = cJSON_CreateObject();
-  cJSON_AddStringToObject(d, "token", ctx->token);
-  cJSON_AddNumberToObject(d, "intents", intents);
-  cJSON_AddItemToObject(d, "properties", p);
+  json_properties = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_properties, "os", "linux");
+  cJSON_AddStringToObject(json_properties, "browser", "disque");
+  cJSON_AddStringToObject(json_properties, "device", "disque");
+  json_d = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_d, "token", ctx->token);
+  cJSON_AddNumberToObject(json_d, "intents", intents);
+  cJSON_AddItemToObject(json_d, "properties", json_properties);
+  if (presence) {
+    json_activities = cJSON_CreateArray();
+    for (int i = 0; i < presence->activity_count; i++) {
+      json_activity = cJSON_CreateObject();
+      cJSON_AddStringToObject(json_activity, "name", presence->activities[i].name);
+      cJSON_AddNumberToObject(json_activity, "type", presence->activities[i].type);
+      cJSON_AddItemToArray(json_activities, json_activity);
+    }
+    json_presence = cJSON_CreateObject();
+    cJSON_AddNullToObject(json_presence, "since");
+    cJSON_AddItemToObject(json_presence, "activities", json_activities);
+    switch (presence->status) {
+      case DQ_STATUS_ONLINE:
+        cJSON_AddStringToObject(json_presence, "status", "online");
+        break;
+      case DQ_STATUS_DND:
+        cJSON_AddStringToObject(json_presence, "status", "dnd");
+        break;
+      case DQ_STATUS_IDLE:
+        cJSON_AddStringToObject(json_presence, "status", "idle");
+        break;
+      case DQ_STATUS_INVISIBLE:
+        cJSON_AddStringToObject(json_presence, "status", "invisible");
+        break;
+    }
+    cJSON_AddBoolToObject(json_presence, "afk", presence->afk);
+    cJSON_AddItemToObject(json_d, "presence", json_presence);
+  }
   payload = cJSON_CreateObject();
   cJSON_AddNumberToObject(payload, "op", 2);
-  cJSON_AddItemToObject(payload, "d", d);
+  cJSON_AddItemToObject(payload, "d", json_d);
 
   cJSON_PrintPreallocated(payload, buffer, 512, 0);
   cJSON_Delete(payload);

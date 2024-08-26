@@ -89,6 +89,34 @@ enum DisqueIntents {
   DQI_DIRECT_MESSAGE_POLLS = 1 << 25,
 };
 
+enum DisquePresenceStatus {
+  DQ_STATUS_ONLINE,
+  DQ_STATUS_DND,
+  DQ_STATUS_IDLE,
+  DQ_STATUS_INVISIBLE,
+};
+
+enum DisquePresenceActivityType {
+  DQ_ACTIVITY_PLAYING = 0,
+  DQ_ACTIVITY_STREAMING = 1,
+  DQ_ACTIVITY_LISTENING = 2,
+  DQ_ACTIVITY_WATCHING = 3,
+  DQ_ACTIVITY_CUSTOM = 4,
+  DQ_ACTIVITY_COMPETING = 5,
+};
+
+struct DisquePresenceActivity {
+  char name[64];
+  enum DisquePresenceActivityType type;
+};
+
+struct DisqueUpdatePresence {
+  enum DisquePresenceStatus status;
+  typeof(sizeof(0)) activity_count;
+  struct DisquePresenceActivity *activities;
+  char afk;
+};
+
 /* UTIL */
 void disque_cdn_avatar(long id, const char *hash, char *buffer, typeof(sizeof(0)) size);
 void disque_cdn_banner(long id, const char *hash, char *buffer, typeof(sizeof(0)) size);
@@ -99,7 +127,7 @@ enum DisqueCode disque_global_init();
 enum DisqueCode disque_connect_gateway(struct DisqueContext *ctx, char *url);
 enum DisqueCode disque_recv(struct DisqueContext *ctx, struct DisqueEvent *res);
 enum DisqueCode disque_send_heartbeat(struct DisqueContext *ctx);
-enum DisqueCode disque_send_identify(struct DisqueContext *ctx, int intents);
+enum DisqueCode disque_send_identify(struct DisqueContext *ctx, int intents, struct DisqueUpdatePresence *presence);
 void disque_free_gateway(struct DisqueContext *ctx);
 
 /* REST */
